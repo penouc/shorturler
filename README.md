@@ -1,41 +1,53 @@
-# TypeScript Fullstack Engineer Assignment
+短链接系统说明
 
-### Typescript 实现短域名服务（细节可以百度/谷歌）
+> 安装依赖
+```javascript
+ npm install 
+```
+> 服务启动
+```javascript
+nest start 
+```
 
-撰写两个 API 接口
+## 系统架构图
+ ![系统架构图](https://raw.githubusercontent.com/penouc/upic/main/uPic/eqhCUF.jpg)
 
-- 短域名存储接口：接受长域名信息，返回短域名信息
-- 短域名读取接口：接受短域名信息，返回长域名信息。
+1. 假定该系统为多读少写的系统，读写都会经过 redis，短链接对应关系最终存储在 mysql 中
+2. 使用了 murmurHash 算法进行短链接生成，生成后使用 base62 进行转码，保证两次 url 进来后生成的短链接是统一的
+3. 判断短链接是否重复，如果重复的话会在长链接后加上关键词，同时将关键词一并存储在 mysql 中
+4. 问题1：redis 在该项目中没有增加单元测试，使用了 redis 自带的 redisBloom 模块，所以在安装 redis 的时候需要安装 redisBloom 模块
+5. 问题2：没有设计短链接过期系统，后续考虑增加定时任务，清理最少引用的短链接
 
-限制：
 
-- 短域名长度最大为 8 个字符
+------
+## 单元测试
+![kevkjh](https://raw.githubusercontent.com/penouc/upic/main/uPic/kevkjh.jpg)
 
-递交作业内容
+单元测试覆盖了以下几个部分
+1. 判断是否为有效的长链接
+2. 转换长链接到短链接是否成功
+3. 两次存入长链接后，获得的短链接是一致的
+4. 判断非有效链接后返回异常
 
-1. 源代码
-2. 单元测试代码以及单元测试覆盖率
-3. API 集成测试案例以及测试结果
-4. 简单的框架设计图，以及所有做的假设
-5. 涉及的 SQL 或者 NoSQL 的 Schema，注意标注出 Primary key 和 Index 如果有。
+------
+## 集成测试
+ ![8lrCxd](https://raw.githubusercontent.com/penouc/upic/main/uPic/8lrCxd.jpg)
 
-## 岗位职责
+集成测试中主要测试了 web 端短链接的读，和长链接的写入。
 
-- 根据产品交互稿构建高质量企业级 Web 应用
-- 技术栈：Express + React
-- 在产品迭代中逐步积累技术框架与组件库
-- 根据业务需求适时地重构
-- 为 Pull Request 提供有效的代码审查建议
-- 设计并撰写固实的单元测试与集成测试
+------
 
-## 要求
+## 压测
 
-- 三年以上技术相关工作经验
-- 能高效并高质量交付产品
-- 对业务逻辑有较为深刻的理解
-- 加分项
-  - 持续更新的技术博客
-  - 长期维护的开源项目
-  - 流畅阅读英文技术文档
-  - 对审美有一定追求
-  - 能力突出者可适当放宽年限
+ ![QBRLxt](https://raw.githubusercontent.com/penouc/upic/main/uPic/QBRLxt.jpg)
+
+测试了 120 qps 下，2400 个请求的情景下完成跳转的链接
+
+| 状态  | 平均值 |
+| TP90 | 0.84  |
+| TP95 | 1.21  |
+| TP99 | 1.98  |
+
+------ 
+## 数据库设计
+![tLmGnP](https://raw.githubusercontent.com/penouc/upic/main/uPic/tLmGnP.jpg)
